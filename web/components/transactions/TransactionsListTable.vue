@@ -8,9 +8,6 @@
       sticky-header
       head-variant="light"
     >
-      <template v-slot:cell(createdAt)="data">
-        {{ data.value.toLocaleString() }}
-      </template>
       <template v-slot:cell(amount)="data">
         {{ data.value | formatAmount(currency) }}
       </template>
@@ -30,7 +27,7 @@ export default class TransactionsListTable extends Vue {
     @Prop({ type: String })
     currency!: '';
 
-    fields:string[] = ['createdAt', 'fromAccountId', 'toAccountId', 'details', 'amount']
+    fields:string[] = ['fromAccountId', 'toAccountId', 'details', 'amount']
 }
 </script>
 <style>
