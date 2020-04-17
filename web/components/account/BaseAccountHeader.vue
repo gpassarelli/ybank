@@ -1,18 +1,12 @@
 <template functional>
   <b-card :header="'Welcome, ' + props.account.name" class="mt-3 AccountHeader">
-      <b-container>
-        <b-row>
-          <b-col>
-            <strong>Account:</strong> <code>{{ props.account.id }}</code>
-          </b-col>
-          <b-col class="text-right">
-            <strong>Balance:</strong>
-            <code>
-              {{ props.account.balance | formatAmount(props.account.currency) }}
-            </code>
-          </b-col>
-        </b-row>
-      </b-container>
+    <b-card-text>
+      <div>
+        <p><strong>Account:</strong> <b-badge>{{ props.account.id }}</b-badge></p>
+        <p><strong>Balance:</strong> <b-badge> {{ props.account.balance | formatAmount(props.account.currency) }}</b-badge></p>
+      </div>
+    </b-card-text>
+    <slot name="footer"></slot>
   </b-card>
 </template>
 
