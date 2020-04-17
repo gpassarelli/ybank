@@ -1,0 +1,6 @@
+store/*/*-types.*
+store/*-types.*
+store/__tests__
+store/__mocks__
+store/*/__tests__
+store/*/__mocks__
