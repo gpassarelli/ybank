@@ -11,13 +11,17 @@ module.exports = {
     'json'
   ],
   transform: {
-    "^.+\\.ts$": "ts-jest",
+    '^.+\\.ts$': 'ts-jest',
     '^.+\\.js$': 'babel-jest',
     '.*\\.(vue)$': 'vue-jest'
   },
   collectCoverage: true,
   collectCoverageFrom: [
     '<rootDir>/components/**/*.vue',
-    '<rootDir>/pages/**/*.vue'
+    '<rootDir>/layouts/**/*.vue',
+    '<rootDir>/pages/**/*.vue',
+    '<rootDir>/lib/**/*.ts',
+    '<rootDir>/plugins/**/*.ts',
+    '<rootDir>/store/**/*.ts'
   ]
 }
