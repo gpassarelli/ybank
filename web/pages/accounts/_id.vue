@@ -1,200 +1,81 @@
 <template>
-  <div>
-    <div class="container" v-if="loading">loading...</div>
-
-    <div class="container" v-if="!loading">
-      <b-card :header="'Welcome, ' + account.name" class="mt-3">
-        <b-card-text>
-          <div>
-            Account: <code>{{ account.id }}</code>
-          </div>
-          <div>
-            Balance:
-            <code
-              >{{ account.currency === "usd" ? "$" : "€"
-              }}{{ account.balance }}</code
-            >
-          </div>
-        </b-card-text>
-        <b-button size="sm" variant="success" @click="show = !show"
-          >New payment</b-button
-        >
-
-        <b-button
-          class="float-right"
-          variant="danger"
-          size="sm"
-          nuxt-link
-          to="/"
-          >Logout</b-button
-        >
-      </b-card>
-
-      <b-card class="mt-3" header="New Payment" v-show="show">
-        <b-form @submit="onSubmit">
-          <b-form-group id="input-group-1" label="To:" label-for="input-1">
-            <b-form-input
-              id="input-1"
-              size="sm"
-              v-model="payment.to"
-              type="number"
-              required
-              placeholder="Destination ID"
-            ></b-form-input>
-          </b-form-group>
-
-          <b-form-group id="input-group-2" label="Amount:" label-for="input-2">
-            <b-input-group prepend="$" size="sm">
-              <b-form-input
-                id="input-2"
-                v-model="payment.amount"
-                type="number"
-                required
-                placeholder="Amount"
-              ></b-form-input>
-            </b-input-group>
-          </b-form-group>
-
-          <b-form-group id="input-group-3" label="Details:" label-for="input-3">
-            <b-form-input
-              id="input-3"
-              size="sm"
-              v-model="payment.details"
-              required
-              placeholder="Payment details"
-            ></b-form-input>
-          </b-form-group>
-
-          <b-button type="submit" size="sm" variant="primary">Submit</b-button>
-        </b-form>
-      </b-card>
-
-      <b-card class="mt-3" header="Payment History">
-        <b-table striped hover :items="transactions"></b-table>
-      </b-card>
-    </div>
+  <div class="Account_id">
+    <b-container>
+      <b-overlay :show="isLoading" rounded="sm">
+        <AccountHeader v-show="account" :account="account">
+          <template v-slot:footer>
+            <b-button size="sm" variant="success" @click="toggleAddTransactionForm">
+              New payment
+            </b-button>
+            <LogoutButton class="float-right"/>
+          </template>
+        </AccountHeader>
+      </b-overlay>
+      <hr>
+      <div v-show="showAddTransactionForm" class="mt-3">
+        <b-card header="New Payment">
+          <AddTransactionForm />
+        </b-card>
+        <hr>
+      </div>
+      <b-overlay :show="isLoading" rounded="sm">
+        <b-card class="mt-3" header="Payment History" no-body>
+          <TransactionsListTable :transactions="transactions" :currency="account.currency" />
+        </b-card>
+      </b-overlay>
+    </b-container>
   </div>
 </template>
-
 <script lang="ts">
-import axios from "axios";
-import Vue from "vue";
+    import { Component, Vue } from 'nuxt-property-decorator'
+    import TransactionsListTable from '~/components/transactions/TransactionsListTable.vue'
+    import AddTransactionForm from '~/components/transactions/AddTransactionForm.vue'
+    import LogoutButton from '~/components/auth/LogoutButton.vue'
+    import AccountHeader from '~/components/account/BaseAccountHeader.vue'
+    import { accountModule } from '~/store/account'
+    import { fetchAccount } from '~/store/account/actions-types'
+    import { getAccount } from '~/store/account/getters-types'
+    import { transactionsModule } from '~/store/transactions'
+    import { Account, Transaction } from '~/lib/ybank/models'
+    import { getTransactions } from '~/store/transactions/getters-types'
 
-export default {
-  data() {
-    return {
-      show: false,
-      payment: {},
-
-      account: null,
-      transactions: null,
-
-      loading: true
-    };
-  },
-
-  mounted() {
-    const that = this;
-
-    axios
-      .get(`http://localhost:8000/api/accounts/${this.$route.params.id}`)
-      .then(function(response) {
-        if (!response.data.length) {
-          window.location = "/";
-        } else {
-          that.account = response.data[0];
-
-          if (that.account && that.transactions) {
-            that.loading = false;
-          }
+    @Component({
+        components: {
+            TransactionsListTable,
+            LogoutButton,
+            AccountHeader,
+            AddTransactionForm
         }
-      });
+    })
+    export default class MyAccount extends Vue {
+        isLoading:boolean = true
+        showAddTransactionForm:boolean = false
 
-    axios
-      .get(
-        `http://localhost:8000/api/accounts/${
-          that.$route.params.id
-        }/transactions`
-      )
-      .then(function(response) {
-        that["transactions"] = response.data;
+        @accountModule.Action(fetchAccount)
+        private fetchAccount!: (payload:{id:number}) => Promise<void>;
 
-        var transactions = [];
-        for (let i = 0; i < that.transactions.length; i++) {
-          that.transactions[i].amount =
-            (that.account.currency === "usd" ? "$" : "€") +
-            that.transactions[i].amount;
+        @transactionsModule.Action('fetchTransactions')
+        private fetchTransactions!: (payload:{id:number}) => Promise<void>
 
-          if (that.account.id != that.transactions[i].to) {
-            that.transactions[i].amount = "-" + that.transactions[i].amount;
-          }
+        @accountModule.Getter(getAccount)
+        public account!: Account;
 
-          transactions.push(that.transactions[i]);
+        @transactionsModule.Getter(getTransactions)
+        public transactions!: Transaction[];
+
+        mounted () {
+            const { id: idParam } = this.$route.params
+            const id = Number(idParam)
+
+            this.fetchAccount({ id }).then(() => {
+                this.fetchTransactions({ id }).then(() => {
+                    this.isLoading = false
+                })
+            })
         }
 
-        that.transactions = transactions;
-
-        if (that.account && that.transactions) {
-          that.loading = false;
+        toggleAddTransactionForm () {
+            this.showAddTransactionForm = !this.showAddTransactionForm
         }
-      });
-  },
-
-  methods: {
-    onSubmit(evt) {
-      var that = this;
-
-      evt.preventDefault();
-
-      axios.post(
-        `http://localhost:8000/api/accounts/${
-          this.$route.params.id
-        }/transactions`,
-
-        this.payment
-      );
-
-      that.payment = {};
-      that.show = false;
-
-      // update items
-      setTimeout(() => {
-        axios
-          .get(`http://localhost:8000/api/accounts/${this.$route.params.id}`)
-          .then(function(response) {
-            if (!response.data.length) {
-              window.location = "/";
-            } else {
-              that.account = response.data[0];
-            }
-          });
-
-        axios
-          .get(
-            `http://localhost:8000/api/accounts/${
-              that.$route.params.id
-            }/transactions`
-          )
-          .then(function(response) {
-            that["transactions"] = response.data;
-
-            var transactions = [];
-            for (let i = 0; i < that.transactions.length; i++) {
-              that.transactions[i].amount =
-                (that.account.currency === "usd" ? "$" : "€") +
-                that.transactions[i].amount;
-
-              if (that.account.id != that.transactions[i].to) {
-                that.transactions[i].amount = "-" + that.transactions[i].amount;
-              }
-
-              transactions.push(that.transactions[i]);
-            }
-
-            that.transactions = transactions;
-          });
-      }, 200);
     }
-  }
-};
 </script>
