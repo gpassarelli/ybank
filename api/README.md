@@ -17,3 +17,22 @@ The following business rules were tested:
  - Accounts must exist to make the transaction
  - Transactions must have amount > 0
  - No transactions from the same account to the same account
+
+## Build Setup
+
+```bash
+# install dependencies
+$ composer install
+
+# Update .env with Database settings
+
+# Run Migrations
+$ php artisan migrate
+
+# Seed Database
+$ php artisan db:seed
+
+# serve with hot reload at localhost:8000
+$ php artisan serv
+
+```
