@@ -12,6 +12,7 @@ class YbankServiceProvider extends AggregateServiceProvider
      * @var array
      */
     protected $providers = [
-        YbankRepositoryServiceProvider::class
+        YbankRepositoryServiceProvider::class,
+        YbankEventServiceProvider::class,
     ];
 }
