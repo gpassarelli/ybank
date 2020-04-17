@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Route;
 */
 Route::apiResource('currencies', 'Api\CurrencyController')->only(['index']);
 Route::apiResource('accounts', 'Api\AccountController')->only(['show']);
-Route::post('accounts/{id}/transactions', 'Api\AccountController@storeTransaction');
+Route::get('accounts/{id}/transactions', 'Api\AccountController@indexTransactions')->name('accounts.index_transactions');
+Route::post('accounts/{id}/transactions', 'Api\AccountController@storeTransaction')->name('accounts.store_transaction');
 Route::fallback(function () {
     return response()->json(['error' => 'Not Found!'], 404);
 });
