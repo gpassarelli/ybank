@@ -19,8 +19,9 @@ export default class LogoutButton extends Vue {
     logout!: () => Promise<void>
 
     handleClick () {
-      this.logout()
-      this.$router.replace({ path: '/' })
+      this.$router.replace({ path: '/' }).then(() => {
+          this.logout()
+      })
     }
 }
 </script>
