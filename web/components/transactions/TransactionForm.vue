@@ -80,8 +80,7 @@ export default class TransactionForm extends Vue {
   handleSubmit () {
     const { form } = this
     const fromAccountId = this.accountId
-    const toAccountId = Number(this.accountId)
-
+    const toAccountId = Number(form.toAccountId)
     if (fromAccountId === toAccountId) {
       this.$showNotification('Select a different account', 'danger')
       return false
